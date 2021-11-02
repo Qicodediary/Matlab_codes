@@ -1,0 +1,72 @@
+% this is an example to read variables stored multiple datasets named according to year and month.
+%the name of files are in format of name_yearmonth_vari.nc
+%lat is latitude
+%lon is longitude
+%vari_ex is extracted variable
+%final_vari is the varible saved in 3D (what I want)
+
+lat=ncread('name_yearmonth_vari.nc','lat');
+lon=ncread('name_yearmonth_vari.nc','lon');
+
+
+%  Set time period
+%-----------------------------------------------------------
+   YRstrt = startyear;
+   YRend  = endyear;
+%-----------------------------------------------------------
+
+ Nyrs = YRend-YRstrt+1;
+
+ NN = 12*Nyrs; % total months
+%--------------------------------
+  n=0;
+   for yr=YRstrt:YRend
+
+      for m=1:12
+
+         n=n+1; %count months
+
+        % form file name
+        %-------------------------------
+         if m<10
+            mnth=['0',int2str(m)];
+         else
+            mnth=int2str(m);
+         end
+
+         fn=['name_',int2str(yr),mnth,'_vari.nc'];
+         disp(fn);
+        %-------------------------------
+
+        % read in data
+        %-------------------------------
+        vari=ncread(fn,'vari');
+        %-------------------------------
+
+        %  extract region
+        %-------------------------------
+        vari_ex=vari(ind_lon,ind_lat);
+        lat_sp=lat(ind_lat);
+        lon_sp=lon(ind_lon);
+        %------------------------------
+
+        % save it in 3D
+        %-------------------------------
+        final_vari(:,:,n)=vari_ex(:,:);
+        %-------------------------------
+
+      end %end loop over months
+
+   end %end loop over years
+
+%plot figures to have a check
+for n=1:NN;
+figure(1)
+clf
+pcolor(lon_sp,lat_sp,final_vari(:,:,n)')
+shading flat
+colorbar
+colormap('jet')
+pause(0.5)
+end
+
