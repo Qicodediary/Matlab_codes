@@ -1,0 +1,22 @@
+% plot a map with vectors in Matlab
+[x,y]=meshgrid(lon_c(1:3:end),lat_c(1:3:end));
+   al_u=al_u_m(1:3:end,1:3:end);
+   al_v=al_v_m(1:3:end,1:3:end);
+
+figure(1)
+clf
+imagesc(lon,lat,ssh',[-0.3 0.3]);
+axis xy
+shading flat
+xlabel('Longitude (^oW)');
+ylabel('Latitude (^oS)');
+colorbar
+colormap jet 
+title('title')
+hold on
+quiver(x,y,10*al_u',10*al_v',0,'color','k')
+hold on
+quiver(lon1,lat1,0.5,0,0,'color','w');%add a vector example label
+text(lon1,lat1,'0.05m/s','color','w');
+saveas(gcf,'name.png');%save the figure
+ 
