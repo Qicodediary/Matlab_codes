@@ -1,0 +1,68 @@
+function sshnc2velnc(infile,outfile,lat1,lat2,lon1,lon2);
+%---------------------------------------------
+
+% infile is ssh nc file
+% outfile is geographical velocity nc file
+% This function is to read daily ssh nc file and use ssh to calculate
+% daily geographical velocity. Finally the velocity is writen in a nc
+% format, which can be used by PARCLES code to produce the water trajectories.
+% the input horizontal resolution should be 1/4 degree
+%lat1,lat2,lon1,lon2 are the lat and lon limits of interested domain
+% writen by QI ZHENG; calc_gsc is writen by Rory Bingham
+
+%---------------------------------------------
+%define variables
+time=ncread(infile,'TIME')+33601.5;
+lat_glbl=ncread(infile,'LATITUDE_T');
+lon_glbl=ncread(infile,'LONGITUDE_T');
+ssh=ncread(infile,'SSH');
+
+ind_lon=find(lon_glbl>=lon1 & lon_glbl <=lon2);
+ind_lat=find(lat_glbl>=lat1 & lat_glbl<=lat2);
+lat=lat_glbl(ind_lat);
+lon=lon_glbl(ind_lon);
+ssh_sp=ssh(ind_lon,ind_lat);
+%define dimensions
+[II,JJ]=size(ssh_sp)
+%replace the missing value of ssh by NaN
+for i=1:II
+      for j=1:JJ
+
+         ts=ssh_sp(i,j);
+         ts(ts<-1.7e7)=NaN;
+         ssh2(i,j)=ts;
+         end
+end
+%calculate velocities
+gsc(:,:,:)=calc_gsc(ssh2(:,:),lat,1.0/4.0,1440);
+
+u=squeeze(gsc(:,:,1));
+v=squeeze(gsc(:,:,2));
+
+%create output nc file  with U,V,time,lat,lon variables
+
+
+nccreate(outfile,'U','Dimensions',{'lon',II,'lat',JJ,'time',1},'Format','classic');
+nccreate(outfile,'V','Dimensions',{'lon',II,'lat',JJ,'time',1},'Format','classic');
+nccreate(outfile,'time','Dimensions',{'time',1},'Format','classic');
+nccreate(outfile,'lon','Dimensions',{'lon',II},'Format','classic');
+nccreate(outfile,'lat','Dimensions',{'lat',JJ},'Format','classic');
+%write attributes
+ncwriteatt(outfile,'/','description','Calculated from the SSH ECCO2 cube92 1-day average');
+ncwriteatt(outfile,'U','units','m/s');
+ncwriteatt(outfile,'U','missing value','NaN');
+ncwriteatt(outfile,'V','units','m/s');
+ncwriteatt(outfile,'V','missing value','NaN');
+ncwriteatt(outfile,'time','units','days since 1900-01-01 00:00:00');
+ncwriteatt(outfile,'time','point_spacing','even');
+ncwriteatt(outfile,'time','time_origin','1900-01-01 00:00:00');
+%check the new nc file
+ncdisp(outfile)
+%write variables
+ncwrite(outfile,'U',u);
+ncwrite(outfile,'V',v);
+ncwrite(outfile,'time',time);
+ncwrite(outfile,'lat',lat);
+ncwrite(outfile,'lon',lon);
+end
+                                                                                2,1           Top
