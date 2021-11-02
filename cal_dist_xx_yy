@@ -1,0 +1,31 @@
+%calculate the distance of latitude grid and longitude grid (in m)
+%yy is the distance between each latitude grid
+%lon is longitude
+%lat is latitude
+
+
+II=size(lon)
+JJ=size(lat)
+
+yy(1:JJ)=NaN;
+for j=1:JJ;
+dislonper(j)=((90+lat(j))*3.14)./180*111.7e3;
+end
+
+for j=1:JJ;
+if j<JJ;
+yy(j)=abs(lat(j+1)-lat(j))*(111.7e3); 
+end
+end
+
+% xx is the distance between each longitude grid
+xx(1:II,1:JJ)=NaN;
+for i=1:II;
+   for j=1:JJ;
+      if i<II;
+      xx(i,j)=abs(lon(i+1)-lon(i))*dislonper(j); 
+      end
+   end
+end
+
+
